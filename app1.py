@@ -15,16 +15,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS 样式 (移动端高对比度优化版) ---
+# --- 2. CSS 样式 (修复侧边栏唤起) ---
 st.markdown("""
 <style>
-    /* 隐藏右上角菜单和底部，让界面像原生 App */
+    /* --- 关键修复区 --- */
+    /* 只隐藏右上角的三点菜单，保留 Header 区域以便能点击左上角的侧边栏箭头 */
     #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
+
+    /* 隐藏底部 Footer */
     footer {visibility: hidden;}
 
-    /* 全局背景 */
-    .stApp { background-color: #000000; color: #FFFFFF; } /* 纯黑背景更省电且对比度更高 */
+    /* 将顶部 Header 背景设为透明，保持沉浸感，但保留交互能力 */
+    [data-testid="stHeader"] {
+        background-color: rgba(0,0,0,0);
+    }
+
+    /* --- 全局样式 --- */
+    .stApp { background-color: #000000; color: #FFFFFF; }
 
     /* HUD */
     .hud-container {
@@ -43,37 +50,35 @@ st.markdown("""
         border: 1px solid #333; margin-bottom: 20px;
     }
     .question-text { 
-        font-size: 22px; /* 手机端字号适配 */
+        font-size: 22px; 
         font-weight: 600; 
-        color: #FFFFFF; /* 纯白题目 */
+        color: #FFFFFF; 
         line-height: 1.5; 
         margin-bottom: 25px; 
     }
 
     .tag { display: inline-block; padding: 4px 10px; background-color: #2244CC; color: #FFFFFF; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 15px; }
 
-    /* --- 选项样式 (重点修改) --- */
+    /* 选项样式 */
     .stRadio div[role='radiogroup'] > label {
         background-color: #111111; 
-        border: 1px solid #444444; /* 边框更明显 */
-        color: #FFFFFF !important; /* 强制纯白文字 */
-        font-size: 17px !important; /* 字号加大 */
+        border: 1px solid #444444; 
+        color: #FFFFFF !important; 
+        font-size: 17px !important; 
         font-weight: 500;
-        padding: 18px 20px; /* 增大点击区域 */
+        padding: 18px 20px; 
         border-radius: 12px; 
         margin-bottom: 12px; 
         transition: all 0.1s;
-        opacity: 1 !important; /* 防止透明度降低 */
+        opacity: 1 !important;
     }
-    /* 选中/悬浮状态 */
     .stRadio div[role='radiogroup'] > label:hover {
         background-color: #222222;
         border-color: #00CCFF; 
         color: #FFFFFF !important;
     }
-    /* 选中时的圆点颜色 (Streamlit 默认是红色，改为蓝色) */
     div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {
-        color: #FFFFFF !important; /* 再次强制文字白色 */
+        color: #FFFFFF !important;
     }
 
     /* 按钮 */
@@ -96,7 +101,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-DATA_FILE = "user_data_v17.pkl"
+DATA_FILE = "user_data_v18.pkl"
 
 # --- 3. 逻辑函数 ---
 RE_OPTS_1 = re.compile(r'(^|\s)([A-Z])[.、:．]\s*(.*?)(?=\s+[A-Z][.、:．]|$)', re.DOTALL | re.MULTILINE)
