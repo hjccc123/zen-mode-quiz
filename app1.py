@@ -15,62 +15,90 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS 样式 ---
+# --- 2. CSS 样式 (移动端高对比度优化版) ---
 st.markdown("""
 <style>
-    .stApp { background-color: #0E1117; color: #FAFAFA; }
+    /* 隐藏右上角菜单和底部，让界面像原生 App */
     #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
     footer {visibility: hidden;}
+
+    /* 全局背景 */
+    .stApp { background-color: #000000; color: #FFFFFF; } /* 纯黑背景更省电且对比度更高 */
 
     /* HUD */
     .hud-container {
-        display: flex; justify-content: space-between; background-color: #1F2128;
-        padding: 15px 25px; border-radius: 12px; border: 1px solid #363B45;
-        margin-bottom: 25px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        display: flex; justify-content: space-between; background-color: #1A1A1A;
+        padding: 15px 20px; border-radius: 12px; border: 1px solid #333;
+        margin-bottom: 20px; align-items: center;
     }
-    .hud-item { font-size: 16px; font-weight: 500; color: #A0AEC0; }
-    .hud-value { font-size: 20px; font-weight: 700; color: #F8FAFC; margin-left: 8px; }
-    .hud-warn { color: #F87171 !important; } 
-    .hud-accent { color: #38BDF8 !important; } 
+    .hud-item { font-size: 15px; font-weight: 600; color: #BBBBBB; }
+    .hud-value { font-size: 20px; font-weight: 800; color: #FFFFFF; margin-left: 6px; }
+    .hud-warn { color: #FF5555 !important; } 
+    .hud-accent { color: #00CCFF !important; } 
 
-    /* 卡片 */
+    /* 题目卡片 */
     .zen-card {
-        background-color: #262730; padding: 40px; border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.5); border: 1px solid #363B45; margin-bottom: 20px;
+        background-color: #1A1A1A; padding: 25px; border-radius: 16px;
+        border: 1px solid #333; margin-bottom: 20px;
     }
-    .question-text { font-size: 24px; font-weight: 500; color: #E2E8F0; line-height: 1.6; margin-bottom: 30px; }
+    .question-text { 
+        font-size: 22px; /* 手机端字号适配 */
+        font-weight: 600; 
+        color: #FFFFFF; /* 纯白题目 */
+        line-height: 1.5; 
+        margin-bottom: 25px; 
+    }
 
-    .tag { display: inline-block; padding: 5px 12px; background-color: #1E3A8A; color: #93C5FD; border-radius: 6px; font-size: 13px; font-weight: 700; margin-bottom: 20px; }
+    .tag { display: inline-block; padding: 4px 10px; background-color: #2244CC; color: #FFFFFF; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 15px; }
 
-    /* 选项 */
+    /* --- 选项样式 (重点修改) --- */
     .stRadio div[role='radiogroup'] > label {
-        background-color: #1A1C23; border: 1px solid #2D3748; color: #CBD5E0 !important;
-        padding: 18px 20px; border-radius: 12px; margin-bottom: 12px; transition: all 0.2s;
+        background-color: #111111; 
+        border: 1px solid #444444; /* 边框更明显 */
+        color: #FFFFFF !important; /* 强制纯白文字 */
+        font-size: 17px !important; /* 字号加大 */
+        font-weight: 500;
+        padding: 18px 20px; /* 增大点击区域 */
+        border-radius: 12px; 
+        margin-bottom: 12px; 
+        transition: all 0.1s;
+        opacity: 1 !important; /* 防止透明度降低 */
     }
+    /* 选中/悬浮状态 */
     .stRadio div[role='radiogroup'] > label:hover {
-        border-color: #38BDF8; background-color: #2D3748; color: #FFFFFF !important; transform: translateX(5px); cursor: pointer;
+        background-color: #222222;
+        border-color: #00CCFF; 
+        color: #FFFFFF !important;
+    }
+    /* 选中时的圆点颜色 (Streamlit 默认是红色，改为蓝色) */
+    div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {
+        color: #FFFFFF !important; /* 再次强制文字白色 */
     }
 
-    /* 反馈提示框 */
-    .feedback-box {
-        padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; text-align: center;
+    /* 按钮 */
+    button[kind="primary"] { 
+        background-color: #0066FF !important; 
+        color: white !important;
+        border-radius: 10px;
+        font-weight: bold;
+        border: none; 
+        height: 50px;
     }
-    .feedback-success { background-color: #064E3B; color: #6EE7B7; border: 1px solid #059669; }
-    .feedback-error { background-color: #7F1D1D; color: #FCA5A5; border: 1px solid #DC2626; }
 
-    button[kind="primary"] { background-color: #2563EB !important; border: none; }
-    button[kind="primary"]:hover { background-color: #3B82F6 !important; }
+    /* 反馈框 */
+    .feedback-box { padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; text-align: center; font-size: 18px; }
+    .feedback-success { background-color: #004400; color: #00FF00; border: 1px solid #008800; }
+    .feedback-error { background-color: #550000; color: #FF5555; border: 1px solid #AA0000; }
 
     @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateX(0);} 40% {transform: translateX(-10px);} 60% {transform: translateX(-5px);} }
-    .arrow-hint { animation: bounce 2s infinite; font-size: 24px; color: #38BDF8; font-weight: bold; display: inline-block; margin-right: 10px; }
+    .arrow-hint { animation: bounce 2s infinite; font-size: 24px; color: #00CCFF; font-weight: bold; display: inline-block; margin-right: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
-DATA_FILE = "user_data_v16.pkl"
+DATA_FILE = "user_data_v17.pkl"
 
 # --- 3. 逻辑函数 ---
-
-# 预编译正则
 RE_OPTS_1 = re.compile(r'(^|\s)([A-Z])[.、:．]\s*(.*?)(?=\s+[A-Z][.、:．]|$)', re.DOTALL | re.MULTILINE)
 RE_OPTS_2 = re.compile(r'(^|\s)\(?([A-Z])\)[.:]?\s*(.*?)(?=\s+\(?[A-Z]\)?[.:]?|$)', re.DOTALL | re.MULTILINE)
 RE_OPTS_3 = re.compile(r'([A-Z])[.、:．](.*?)(?=[A-Z][.、:．]|$)', re.DOTALL | re.MULTILINE)
@@ -111,14 +139,13 @@ def process_excel(file):
         def find_col(kws):
             for c in df.columns:
                 for kw in kws:
-                    if kw in c:
-                     return c
+                    if kw in c: return c
             return None
 
         col_type = find_col(['类型', 'Type', '题型'])
         col_content = find_col(['内容', 'Content', '题目'])
         col_answer = find_col(['答案', 'Answer', '结果'])
-        if not (col_type and col_content and col_answer): return None, "Excel 缺少必要列 (需包含: 类型, 内容, 答案)"
+        if not (col_type and col_content and col_answer): return None, "缺少必要列"
 
         df[col_type] = df[col_type].fillna("").astype(str)
         df[col_content] = df[col_content].fillna("").astype(str)
@@ -127,12 +154,10 @@ def process_excel(file):
         questions = []
         records = df.to_dict('records')
         total_rows = len(records)
-
         progress_bar = st.progress(0)
 
         for i, row in enumerate(records):
             if i % (max(1, total_rows // 10)) == 0: progress_bar.progress((i + 1) / total_rows)
-
             raw_type = normalize_text(row[col_type]).upper()
             raw_content = row[col_content]
             raw_answer = normalize_text(row[col_answer]).upper()
@@ -148,13 +173,11 @@ def process_excel(file):
 
             q_text, q_options = parse_options_zen(raw_content)
             if q_code in ['BO', 'CO'] and not q_options: q_options = {}
-
             questions.append({
                 "id": i, "code": q_code, "type": q_name,
                 "content": q_text, "options": q_options, "answer": raw_answer,
                 "user_answer": None, "raw_content": raw_content
             })
-
         progress_bar.empty()
         return questions, None
     except Exception as e:
@@ -162,19 +185,12 @@ def process_excel(file):
 
 
 def export_wrong_questions(q_list):
-    """
-    导出逻辑优化：
-    1. 使用原始的 raw_content 作为“题目内容”，确保包含选项，方便再次导入。
-    2. 列名与 import 逻辑对齐。
-    """
     if not q_list: return None
     data = []
     for q in q_list:
         data.append({
-            "题目类型": q['type'],
-            "题目内容": q['raw_content'],  # 使用原始完整内容
-            "正确答案": q['answer'],
-            "你的误选": q['user_answer']
+            "题目类型": q['type'], "题目内容": q['raw_content'],
+            "正确答案": q['answer'], "你的误选": q['user_answer']
         })
     df = pd.DataFrame(data)
     out = io.BytesIO()
@@ -224,7 +240,6 @@ if 'init' not in st.session_state:
 with st.sidebar:
     st.header("🛠️ 控制台")
 
-    # 题库切换
     st.subheader("📚 题库")
     bank_names = list(st.session_state.banks.keys())
     if bank_names:
@@ -235,16 +250,13 @@ with st.sidebar:
             save_state()
             st.rerun()
 
-        # 题型筛选
         if st.session_state.active_bank:
             curr_q_list = st.session_state.banks[st.session_state.active_bank]
             all_types = list(set(q['type'] for q in curr_q_list))
             default_sel = st.session_state.filters.get(st.session_state.active_bank, all_types)
-
             st.markdown("---")
-            st.subheader("🎯 题型筛选")
-            selected_types = st.multiselect("只刷这些题型:", all_types, default=default_sel)
-
+            st.subheader("🎯 筛选")
+            selected_types = st.multiselect("只刷:", all_types, default=default_sel)
             if selected_types != default_sel:
                 st.session_state.filters[st.session_state.active_bank] = selected_types
                 st.session_state.progress[st.session_state.active_bank]["current_idx"] = 0
@@ -253,50 +265,37 @@ with st.sidebar:
     else:
         st.warning("暂无题库")
 
-    # 错题本
     if st.session_state.active_bank:
         prog = st.session_state.progress[st.session_state.active_bank]
         wrong_cnt = len(prog['wrong'])
         if wrong_cnt > 0:
             st.divider()
             st.subheader(f"📥 错题 ({wrong_cnt})")
-
             c1, c2 = st.columns(2)
-            # 1. 导出
             xls = export_wrong_questions(prog['wrong'])
-            c1.download_button(f"📥 导出", xls, f"错题本.xlsx", use_container_width=True)
-
-            # 2. 清空
-            with c2.popover("🧹 清空"):
-                if st.button("确认清空", type="primary"):
+            c1.download_button(f"导出", xls, f"错题.xlsx", use_container_width=True)
+            with c2.popover("清空"):
+                if st.button("确认", type="primary"):
                     prog['wrong'] = []
                     save_state()
                     st.rerun()
-
-            # 3. 直接存为新题库 (新增功能)
-            if st.button("💾 直接存为新题库", use_container_width=True):
+            if st.button("💾 存为新题库", use_container_width=True):
                 new_name = f"{st.session_state.active_bank}_错题本"
-                if new_name in st.session_state.banks:
-                    new_name += f"_{int(time.time())}"
-
-                # 深拷贝错题，重置用户答案
+                if new_name in st.session_state.banks: new_name += f"_{int(time.time())}"
                 new_qs = []
                 for wq in prog['wrong']:
                     nq = wq.copy()
-                    nq['user_answer'] = None  # 重置作答
+                    nq['user_answer'] = None
                     new_qs.append(nq)
-
                 st.session_state.banks[new_name] = new_qs
                 st.session_state.progress[new_name] = {"history": {}, "wrong": [], "current_idx": 0}
                 st.session_state.active_bank = new_name
                 st.session_state.filters[new_name] = list(set(q['type'] for q in new_qs))
-
-                st.success(f"已创建并切换至: {new_name}")
+                st.success(f"已切换至: {new_name}")
                 time.sleep(1)
                 save_state()
                 st.rerun()
 
-    # 导入
     st.divider()
     with st.expander("➕ 导入", expanded=(not bank_names)):
         f = st.file_uploader("Excel", type=['xlsx', 'xls'])
@@ -313,16 +312,15 @@ with st.sidebar:
                 st.session_state.progress[final_n] = {"history": {}, "wrong": [], "current_idx": 0}
                 st.session_state.active_bank = final_n
                 st.session_state.filters[final_n] = list(set(q['type'] for q in qs))
-                st.success(f"已导入 {len(qs)} 题")
+                st.success(f"导入 {len(qs)} 题")
                 time.sleep(1)
                 save_state()
                 st.rerun()
 
-    # 删除
     if st.session_state.active_bank:
         st.divider()
-        with st.popover("🗑️ 删除题库", use_container_width=True):
-            if st.button("🔴 确认删除"):
+        with st.popover("🗑️ 删除", use_container_width=True):
+            if st.button("🔴 确认"):
                 del st.session_state.banks[st.session_state.active_bank]
                 del st.session_state.progress[st.session_state.active_bank]
                 del st.session_state.filters[st.session_state.active_bank]
@@ -334,10 +332,10 @@ with st.sidebar:
 # --- 5. 主界面 ---
 if not st.session_state.active_bank:
     st.markdown(
-        """<div style="text-align:center; padding: 100px 0;"><h1>👋 欢迎使用 ZenMode</h1><p style="color:#888;">请在左侧导入题库。</p></div>""",
+        """<div style="text-align:center; padding: 80px 0;"><h1>👋 欢迎</h1><p style="color:#888;">请点击左上角箭头，打开侧边栏导入题库。</p></div>""",
         unsafe_allow_html=True)
     st.markdown(
-        """<div style="text-align:center;"><div class="arrow-hint">👈</div><span style="color:#38BDF8;">请点击箭头展开侧边栏</span></div>""",
+        """<div style="text-align:center;"><div class="arrow-hint">👈</div><span style="color:#00CCFF;">点击这里展开菜单</span></div>""",
         unsafe_allow_html=True)
 else:
     bk = st.session_state.active_bank
@@ -346,22 +344,21 @@ else:
     qs = [q for q in full_qs if q['type'] in active_filters]
 
     if not qs:
-        st.warning("⚠️ 当前筛选条件下没有题目。")
+        st.warning("⚠️ 无题目，请检查筛选。")
     else:
         pg = st.session_state.progress[bk]
         idx = pg['current_idx']
         if idx >= len(qs): idx = len(qs)
 
-        # HUD
         total_q = len(qs)
         done_q = idx + 1
         wrong_q = len(pg['wrong'])
 
         st.markdown(f"""
         <div class="hud-container">
-            <div class="hud-item">题库: <span style="color:#E2E8F0; margin-left:5px;">{bk}</span></div>
-            <div style="display:flex; gap: 30px;">
-                <div class="hud-item">进度 <span class="hud-value hud-accent">{min(done_q, total_q)}</span><span style="font-size:14px;color:#64748B">/{total_q}</span></div>
+            <div class="hud-item" style="max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{bk}</div>
+            <div style="display:flex; gap: 15px;">
+                <div class="hud-item">进度 <span class="hud-value hud-accent">{min(done_q, total_q)}</span>/{total_q}</div>
                 <div class="hud-item">错题 <span class="hud-value hud-warn">{wrong_q}</span></div>
             </div>
         </div>
@@ -370,7 +367,7 @@ else:
         if idx >= len(qs):
             st.balloons()
             st.markdown(
-                f"""<div style="text-align:center; padding: 50px; background:#262730; border-radius:15px;"><h2>🎉 练习完成!</h2><p>共 {total_q} 题，错题 {wrong_q} 道</p></div>""",
+                f"""<div style="text-align:center; padding: 40px; background:#1A1A1A; border-radius:15px;"><h2>🎉 完成!</h2><p>共 {total_q} 题，错题 {wrong_q} 道</p></div>""",
                 unsafe_allow_html=True)
             st.write("")
             if st.button("🔄 再刷一次", type="primary", use_container_width=True):
