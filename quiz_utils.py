@@ -11,6 +11,7 @@ RE_OPTS_3 = re.compile(r'([A-Z])[.、:．;；](.*?)(?=[A-Z][.、:．;；]|$)', r
 # Pattern 4: Newline-separated options (each option on a new line)
 RE_OPTS_4 = re.compile(r'^([A-Z])[.、:．;；)）]?\s*(.+?)$', re.MULTILINE)
 # Pattern 5: Space-separated without delimiter (e.g., "A选项一 B选项二")
+# Matches Chinese characters, digits, and other non-space/non-uppercase characters
 RE_OPTS_5 = re.compile(r'(?:^|\s)([A-Z])([^\sA-Z]+?)(?=\s+[A-Z][^\sA-Z]|\s*$)', re.DOTALL)
 
 
@@ -62,7 +63,6 @@ def parse_options_zen(text):
         if len(matches) >= 2:
             temp_options = {}
             first_match_start = float('inf')
-            valid_keys = set()
             
             for m in matches:
                 if idx == 2:  # Pattern 3: compact format
@@ -76,11 +76,10 @@ def parse_options_zen(text):
                     key, val = groups[-2].upper(), groups[-1].strip()
                 
                 # Skip if key is duplicate or value is empty
-                if key in valid_keys or not val:
+                if key in temp_options or not val:
                     continue
                     
                 temp_options[key] = val
-                valid_keys.add(key)
                 if m.start() < first_match_start:
                     first_match_start = m.start()
             

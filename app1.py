@@ -189,11 +189,8 @@ def process_excel(file):
 
                 q_text, q_options = parse_options_zen(raw_content)
                 
-                # Normalize answer based on question type
-                if q_code == 'AO':
-                    normalized_answer = normalize_answer(raw_answer)
-                else:
-                    normalized_answer = normalize_answer(raw_answer)
+                # Normalize answer (works for all question types)
+                normalized_answer = normalize_answer(raw_answer)
                 
                 if q_code in ['BO', 'CO'] and not q_options:
                     q_options = {}
