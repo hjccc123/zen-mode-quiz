@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import io
-import re
 import time
 import pickle
 import os
 import random
+
+from quiz_utils import normalize_text, normalize_answer, parse_options_zen
 
 # --- 1. 核心配置 ---
 st.set_page_config(
@@ -111,54 +112,43 @@ st.markdown("""
 DATA_FILE = "user_data_v18.pkl"
 
 # --- 3. 逻辑函数 ---
-RE_OPTS_1 = re.compile(r'(^|\s)([A-Z])[.、:．]\s*(.*?)(?=\s+[A-Z][.、:．]|$)', re.DOTALL | re.MULTILINE)
-RE_OPTS_2 = re.compile(r'(^|\s)\(?([A-Z])\)[.:]?\s*(.*?)(?=\s+\(?[A-Z]\)?[.:]?|$)', re.DOTALL | re.MULTILINE)
-RE_OPTS_3 = re.compile(r'([A-Z])[.、:．](.*?)(?=[A-Z][.、:．]|$)', re.DOTALL | re.MULTILINE)
-
-
-def normalize_text(text):
-    if text is None: return ""
-    return str(text).strip().replace('：', ':').replace('（', '(').replace('）', ')').replace('．', '.')
-
-
-def parse_options_zen(text):
-    text = normalize_text(text)
-    options = {}
-    question_text = text
-    patterns = [RE_OPTS_1, RE_OPTS_2, RE_OPTS_3]
-    for idx, p in enumerate(patterns):
-        matches = list(p.finditer(text))
-        if len(matches) >= 2:
-            temp_options = {}
-            first_match_start = float('inf')
-            for m in matches:
-                if idx == 2:
-                    key, val = m.group(1).upper(), m.group(2).strip()
-                else:
-                    groups = m.groups()
-                    key, val = groups[-2].upper(), groups[-1].strip()
-                temp_options[key] = val
-                if m.start() < first_match_start: first_match_start = m.start()
-            if temp_options: return text[:first_match_start].strip(), temp_options
-    return question_text, options
+# Core parsing functions are imported from quiz_utils module
 
 
 def process_excel(file):
+    """Process Excel file and extract questions. Returns (questions_list, error_message)."""
     try:
         df = pd.read_excel(file)
+        if df.empty:
+            return None, "Excel文件为空"
+        
         df.columns = [str(c).strip() for c in df.columns]
 
         def find_col(kws):
+            """Find column by keywords (case-insensitive)."""
             for c in df.columns:
+                c_lower = c.lower()
                 for kw in kws:
-                    if kw in c: return c
+                    if kw.lower() in c_lower:
+                        return c
             return None
 
-        col_type = find_col(['类型', 'Type', '题型'])
-        col_content = find_col(['内容', 'Content', '题目'])
-        col_answer = find_col(['答案', 'Answer', '结果'])
-        if not (col_type and col_content and col_answer): return None, "缺少必要列"
+        col_type = find_col(['类型', 'Type', '题型', 'type', 'kind'])
+        col_content = find_col(['内容', 'Content', '题目', '问题', 'question', 'content'])
+        col_answer = find_col(['答案', 'Answer', '结果', '正确答案', 'answer', 'result'])
+        
+        missing_cols = []
+        if not col_type:
+            missing_cols.append("类型/Type/题型")
+        if not col_content:
+            missing_cols.append("内容/Content/题目")
+        if not col_answer:
+            missing_cols.append("答案/Answer/结果")
+        
+        if missing_cols:
+            return None, f"缺少必要列: {', '.join(missing_cols)}。可用列: {', '.join(df.columns)}"
 
+        # Safely fill NA values
         df[col_type] = df[col_type].fillna("").astype(str)
         df[col_content] = df[col_content].fillna("").astype(str)
         df[col_answer] = df[col_answer].fillna("").astype(str)
@@ -166,49 +156,85 @@ def process_excel(file):
         questions = []
         records = df.to_dict('records')
         total_rows = len(records)
+        
+        if total_rows == 0:
+            return None, "Excel文件中没有数据行"
+            
         progress_bar = st.progress(0)
+        skipped_count = 0
 
         for i, row in enumerate(records):
-            if i % (max(1, total_rows // 10)) == 0: progress_bar.progress((i + 1) / total_rows)
-            raw_type = normalize_text(row[col_type]).upper()
-            raw_content = row[col_content]
-            raw_answer = normalize_text(row[col_answer]).upper()
+            try:
+                if i % (max(1, total_rows // 10)) == 0:
+                    progress_bar.progress((i + 1) / total_rows)
+                
+                raw_type = normalize_text(row.get(col_type, "")).upper()
+                raw_content = row.get(col_content, "")
+                raw_answer = row.get(col_answer, "")
+                
+                # Skip empty rows
+                if not raw_content or not raw_content.strip():
+                    skipped_count += 1
+                    continue
 
-            if any(x in raw_type for x in ['AO', '判断']):
-                q_code, q_name = 'AO', '判断题'
-            elif any(x in raw_type for x in ['BO', '单选']):
-                q_code, q_name = 'BO', '单选题'
-            elif any(x in raw_type for x in ['CO', '多选']):
-                q_code, q_name = 'CO', '多选题'
-            else:
-                q_code, q_name = 'UNK', '未知'
+                # Determine question type with expanded keywords
+                if any(x in raw_type for x in ['AO', '判断', 'TRUE', 'FALSE', 'TF', '对错', '是非']):
+                    q_code, q_name = 'AO', '判断题'
+                elif any(x in raw_type for x in ['BO', '单选', 'SINGLE', '单项', 'RADIO']):
+                    q_code, q_name = 'BO', '单选题'
+                elif any(x in raw_type for x in ['CO', '多选', 'MULTI', '多项', 'CHECKBOX']):
+                    q_code, q_name = 'CO', '多选题'
+                else:
+                    q_code, q_name = 'UNK', '未知'
 
-            q_text, q_options = parse_options_zen(raw_content)
-            if q_code in ['BO', 'CO'] and not q_options: q_options = {}
-            questions.append({
-                "id": i, "code": q_code, "type": q_name,
-                "content": q_text, "options": q_options, "answer": raw_answer,
-                "user_answer": None, "raw_content": raw_content
-            })
+                q_text, q_options = parse_options_zen(raw_content)
+                
+                # Normalize answer (works for all question types)
+                normalized_answer = normalize_answer(raw_answer)
+                
+                if q_code in ['BO', 'CO'] and not q_options:
+                    q_options = {}
+                    
+                questions.append({
+                    "id": i, "code": q_code, "type": q_name,
+                    "content": q_text, "options": q_options, "answer": normalized_answer,
+                    "user_answer": None, "raw_content": raw_content
+                })
+            except Exception as row_error:
+                # Skip problematic rows but continue processing
+                skipped_count += 1
+                continue
+        
         progress_bar.empty()
+        
+        if not questions:
+            return None, f"未能解析出任何有效题目 (跳过了 {skipped_count} 行)"
+        
         return questions, None
     except Exception as e:
         return None, f"解析错误: {str(e)}"
 
 
 def export_wrong_questions(q_list):
-    if not q_list: return None
+    """Export wrong questions to Excel format."""
+    if not q_list:
+        return None
     data = []
     for q in q_list:
         data.append({
-            "题目类型": q['type'], "题目内容": q['raw_content'],
-            "正确答案": q['answer'], "你的误选": q['user_answer']
+            "题目类型": q.get('type', '未知'),
+            "题目内容": q.get('raw_content', ''),
+            "正确答案": q.get('answer', ''),
+            "你的误选": q.get('user_answer', '')
         })
     df = pd.DataFrame(data)
     out = io.BytesIO()
-    with pd.ExcelWriter(out, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False)
-    return out.getvalue()
+    try:
+        with pd.ExcelWriter(out, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False)
+        return out.getvalue()
+    except Exception:
+        return None
 
 
 def save_state():
@@ -442,22 +468,25 @@ else:
                     st.toast("请先作答", icon="⚠️")
                 else:
                     pg['history'][idx] = user_choice
-                    ans = q['answer']
-                    if q['code'] == 'AO':
-                        if ans == '对': ans = 'A'
-                        if ans == '错': ans = 'B'
+                    ans = q.get('answer', '')
+                    
+                    # Normalize user choice for comparison
+                    normalized_user_choice = normalize_answer(user_choice)
+                    normalized_ans = normalize_answer(ans)
 
-                    is_cor = (user_choice == ans)
+                    is_cor = (normalized_user_choice == normalized_ans)
                     if is_cor:
                         feedback_placeholder.markdown(
                             f"""<div class="feedback-box feedback-success">✅ 回答正确！</div>""", unsafe_allow_html=True)
                         time.sleep(0.8)
                     else:
+                        # Display original answer format if available
+                        display_ans = q.get('answer', ans)
                         feedback_placeholder.markdown(
-                            f"""<div class="feedback-box feedback-error">❌ 错误！正确答案是：{q['answer']}</div>""",
+                            f"""<div class="feedback-box feedback-error">❌ 错误！正确答案是：{display_ans}</div>""",
                             unsafe_allow_html=True)
-                        if not any(w['raw_content'] == q['raw_content'] for w in pg['wrong']):
-                            wrong_q = q.copy()  # 修复：保存问题的副本而不是引用
+                        if not any(w.get('raw_content') == q.get('raw_content') for w in pg['wrong']):
+                            wrong_q = q.copy()  # 保存问题的副本而不是引用
                             wrong_q['user_answer'] = user_choice
                             pg['wrong'].append(wrong_q)
                         time.sleep(1.5)
