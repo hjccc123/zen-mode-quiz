@@ -18,6 +18,9 @@ st.set_page_config(
 # --- 2. CSS 样式 (修复侧边栏唤起) ---
 st.markdown("""
 <style>
+    /* 导入 Google 中文字体，确保中文正确显示 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap');
+
     /* --- 关键修复区 --- */
     /* 只隐藏右上角的三点菜单，保留 Header 区域以便能点击左上角的侧边栏箭头 */
     #MainMenu {visibility: hidden;}
@@ -31,6 +34,10 @@ st.markdown("""
     }
 
     /* --- 全局样式 --- */
+    /* 添加中文字体支持，确保中文正确显示 */
+    * {
+        font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif !important;
+    }
     .stApp { background-color: #000000; color: #FFFFFF; }
 
     /* HUD */
@@ -353,10 +360,15 @@ else:
     else:
         pg = st.session_state.progress[bk]
         idx = pg['current_idx']
-        if idx >= len(qs): idx = len(qs)
-
         total_q = len(qs)
-        done_q = idx + 1
+        
+        # 当索引超出范围时，表示已完成所有题目
+        if idx >= total_q:
+            idx = total_q
+            pg['current_idx'] = idx  # 修复：同步更新进度状态
+
+        # 计算显示的进度（完成时显示总数，否则显示当前题号）
+        done_q = total_q if idx >= total_q else idx + 1
         wrong_q = len(pg['wrong'])
 
         st.markdown(f"""
@@ -445,7 +457,9 @@ else:
                             f"""<div class="feedback-box feedback-error">❌ 错误！正确答案是：{q['answer']}</div>""",
                             unsafe_allow_html=True)
                         if not any(w['raw_content'] == q['raw_content'] for w in pg['wrong']):
-                            pg['wrong'].append(q)
+                            wrong_q = q.copy()  # 修复：保存问题的副本而不是引用
+                            wrong_q['user_answer'] = user_choice
+                            pg['wrong'].append(wrong_q)
                         time.sleep(1.5)
 
                     pg['current_idx'] += 1
