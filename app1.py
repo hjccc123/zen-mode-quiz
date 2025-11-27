@@ -19,9 +19,6 @@ st.set_page_config(
 # --- 2. CSS 样式 (修复侧边栏唤起) ---
 st.markdown("""
 <style>
-    /* 导入 Google 中文字体，确保中文正确显示 */
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap');
-
     /* --- 关键修复区 --- */
     /* 只隐藏右上角的三点菜单，保留 Header 区域以便能点击左上角的侧边栏箭头 */
     #MainMenu {visibility: hidden;}
@@ -35,77 +32,228 @@ st.markdown("""
     }
 
     /* --- 全局样式 --- */
-    /* 添加中文字体支持，确保中文正确显示 */
+    /* 使用系统字体支持中文显示，避免依赖外部字体 */
     * {
-        font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif !important;
     }
-    .stApp { background-color: #000000; color: #FFFFFF; }
+    
+    html, body, [class*="css"] {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif !important;
+    }
+    
+    .stApp { background-color: #0a0a0a; color: #FFFFFF; }
 
-    /* HUD */
+    /* 侧边栏样式优化 */
+    [data-testid="stSidebar"] {
+        background-color: #111111;
+        border-right: 1px solid #2a2a2a;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stMultiSelect label,
+    [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: #FFFFFF !important;
+    }
+
+    /* HUD 进度条样式 */
     .hud-container {
-        display: flex; justify-content: space-between; background-color: #1A1A1A;
-        padding: 15px 20px; border-radius: 12px; border: 1px solid #333;
-        margin-bottom: 20px; align-items: center;
+        display: flex; 
+        justify-content: space-between; 
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 18px 24px; 
+        border-radius: 16px; 
+        border: 1px solid #2a2a4a;
+        margin-bottom: 24px; 
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
-    .hud-item { font-size: 15px; font-weight: 600; color: #BBBBBB; }
-    .hud-value { font-size: 20px; font-weight: 800; color: #FFFFFF; margin-left: 6px; }
-    .hud-warn { color: #FF5555 !important; } 
-    .hud-accent { color: #00CCFF !important; } 
+    .hud-item { 
+        font-size: 15px; 
+        font-weight: 600; 
+        color: #a0a0b0; 
+    }
+    .hud-value { 
+        font-size: 22px; 
+        font-weight: 800; 
+        color: #FFFFFF; 
+        margin-left: 8px; 
+    }
+    .hud-warn { color: #ff6b6b !important; } 
+    .hud-accent { color: #4ecdc4 !important; } 
 
-    /* 题目卡片 */
+    /* 题目卡片样式优化 */
     .zen-card {
-        background-color: #1A1A1A; padding: 25px; border-radius: 16px;
-        border: 1px solid #333; margin-bottom: 20px;
+        background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%);
+        padding: 30px; 
+        border-radius: 20px;
+        border: 1px solid #2a2a4a; 
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
     .question-text { 
         font-size: 22px; 
         font-weight: 600; 
         color: #FFFFFF; 
-        line-height: 1.5; 
-        margin-bottom: 25px; 
+        line-height: 1.7; 
+        margin-bottom: 25px;
+        letter-spacing: 0.3px;
     }
 
-    .tag { display: inline-block; padding: 4px 10px; background-color: #2244CC; color: #FFFFFF; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 15px; }
+    .tag { 
+        display: inline-block; 
+        padding: 6px 14px; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #FFFFFF; 
+        border-radius: 20px; 
+        font-size: 12px; 
+        font-weight: bold; 
+        margin-bottom: 18px;
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    }
 
-    /* 选项样式 */
+    /* 选项样式优化 */
     .stRadio div[role='radiogroup'] > label {
-        background-color: #111111; 
-        border: 1px solid #444444; 
+        background: linear-gradient(145deg, #1e1e2e 0%, #151520 100%);
+        border: 1px solid #3a3a5a; 
         color: #FFFFFF !important; 
         font-size: 17px !important; 
         font-weight: 500;
-        padding: 18px 20px; 
-        border-radius: 12px; 
+        padding: 18px 22px; 
+        border-radius: 14px; 
         margin-bottom: 12px; 
-        transition: all 0.1s;
+        transition: all 0.2s ease;
         opacity: 1 !important;
     }
     .stRadio div[role='radiogroup'] > label:hover {
-        background-color: #222222;
-        border-color: #00CCFF; 
+        background: linear-gradient(145deg, #252540 0%, #1a1a30 100%);
+        border-color: #4ecdc4; 
         color: #FFFFFF !important;
+        transform: translateX(4px);
+        box-shadow: 0 4px 15px rgba(78, 205, 196, 0.2);
     }
     div[role="radiogroup"] div[data-testid="stMarkdownContainer"] p {
         color: #FFFFFF !important;
     }
 
-    /* 按钮 */
-    button[kind="primary"] { 
-        background-color: #0066FF !important; 
+    /* 复选框样式 */
+    .stCheckbox label {
+        color: #FFFFFF !important;
+    }
+
+    /* 按钮样式优化 */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
-        border-radius: 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none !important;
+        padding: 12px 24px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    button[kind="primary"] { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border-radius: 12px;
         font-weight: bold;
-        border: none; 
+        border: none !important; 
         height: 50px;
     }
 
-    /* 反馈框 */
-    .feedback-box { padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; text-align: center; font-size: 18px; }
-    .feedback-success { background-color: #004400; color: #00FF00; border: 1px solid #008800; }
-    .feedback-error { background-color: #550000; color: #FF5555; border: 1px solid #AA0000; }
+    /* 反馈框样式优化 */
+    .feedback-box { 
+        padding: 18px; 
+        border-radius: 12px; 
+        margin: 18px 0; 
+        font-weight: bold; 
+        text-align: center; 
+        font-size: 18px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .feedback-success { 
+        background: linear-gradient(135deg, #0d4d0d 0%, #1a5a1a 100%);
+        color: #4ade80; 
+        border: 1px solid #22c55e;
+    }
+    .feedback-error { 
+        background: linear-gradient(135deg, #4d0d0d 0%, #5a1a1a 100%);
+        color: #f87171; 
+        border: 1px solid #ef4444;
+    }
 
-    @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateX(0);} 40% {transform: translateX(-10px);} 60% {transform: translateX(-5px);} }
-    .arrow-hint { animation: bounce 2s infinite; font-size: 24px; color: #00CCFF; font-weight: bold; display: inline-block; margin-right: 10px; }
+    /* 完成页面样式 */
+    .completion-card {
+        text-align: center;
+        padding: 50px;
+        background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%);
+        border-radius: 20px;
+        border: 1px solid #2a2a4a;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 欢迎页面样式 */
+    .welcome-container {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    .welcome-title {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    .welcome-subtitle {
+        color: #888;
+        font-size: 18px;
+        margin-bottom: 40px;
+    }
+    .welcome-hint {
+        color: #4ecdc4;
+        font-size: 16px;
+    }
+
+    @keyframes bounce { 
+        0%, 20%, 50%, 80%, 100% {transform: translateX(0);} 
+        40% {transform: translateX(-10px);} 
+        60% {transform: translateX(-5px);} 
+    }
+    .arrow-hint { 
+        animation: bounce 2s infinite; 
+        font-size: 28px; 
+        color: #4ecdc4; 
+        font-weight: bold; 
+        display: inline-block; 
+        margin-right: 12px; 
+    }
+
+    /* 输入框样式 */
+    .stTextInput input {
+        background-color: #1a1a2e !important;
+        color: #FFFFFF !important;
+        border: 1px solid #3a3a5a !important;
+        border-radius: 10px !important;
+    }
+    
+    /* 选择框样式 */
+    .stSelectbox > div > div {
+        background-color: #1a1a2e !important;
+        color: #FFFFFF !important;
+    }
+
+    /* 警告框样式 */
+    .stAlert {
+        background-color: #2a2a3e !important;
+        border-radius: 10px !important;
+    }
+
+    /* 分隔线样式 */
+    hr {
+        border-color: #2a2a4a !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -370,10 +518,12 @@ with st.sidebar:
 # --- 5. 主界面 ---
 if not st.session_state.active_bank:
     st.markdown(
-        """<div style="text-align:center; padding: 80px 0;"><h1>👋 欢迎</h1><p style="color:#888;">请点击左上角箭头，打开侧边栏导入题库。</p></div>""",
-        unsafe_allow_html=True)
-    st.markdown(
-        """<div style="text-align:center;"><div class="arrow-hint">👈</div><span style="color:#00CCFF;">点击这里展开菜单</span></div>""",
+        """<div class="welcome-container">
+            <div class="welcome-title">👋 欢迎使用</div>
+            <p class="welcome-subtitle">ZenMode 专注刷题模式</p>
+            <p style="color:#666; margin-bottom: 30px;">请点击左上角箭头，打开侧边栏导入题库开始学习</p>
+            <div><span class="arrow-hint">👈</span><span class="welcome-hint">点击这里展开菜单</span></div>
+        </div>""",
         unsafe_allow_html=True)
 else:
     bk = st.session_state.active_bank
@@ -410,7 +560,11 @@ else:
         if idx >= len(qs):
             st.balloons()
             st.markdown(
-                f"""<div style="text-align:center; padding: 40px; background:#1A1A1A; border-radius:15px;"><h2>🎉 完成!</h2><p>共 {total_q} 题，错题 {wrong_q} 道</p></div>""",
+                f"""<div class="completion-card">
+                    <h2 style="font-size: 36px; margin-bottom: 20px;">🎉 恭喜完成!</h2>
+                    <p style="font-size: 18px; color: #a0a0b0;">本轮共 <span style="color: #4ecdc4; font-weight: bold;">{total_q}</span> 题</p>
+                    <p style="font-size: 18px; color: #a0a0b0;">错题 <span style="color: #ff6b6b; font-weight: bold;">{wrong_q}</span> 道</p>
+                </div>""",
                 unsafe_allow_html=True)
             st.write("")
             if st.button("🔄 再刷一次", type="primary", use_container_width=True):
