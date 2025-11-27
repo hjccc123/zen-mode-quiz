@@ -19,6 +19,17 @@ st.set_page_config(
 # --- 2. CSS 样式 (修复侧边栏唤起) ---
 st.markdown("""
 <style>
+    /* --- CSS 变量定义 --- */
+    :root {
+        --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif;
+        --accent-color: #4ecdc4;
+        --error-color: #ff6b6b;
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #111111;
+        --bg-card: #1a1a2e;
+        --border-color: #2a2a4a;
+    }
+
     /* --- 关键修复区 --- */
     /* 只隐藏右上角的三点菜单，保留 Header 区域以便能点击左上角的侧边栏箭头 */
     #MainMenu {visibility: hidden;}
@@ -33,19 +44,15 @@ st.markdown("""
 
     /* --- 全局样式 --- */
     /* 使用系统字体支持中文显示，避免依赖外部字体 */
-    * {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif !important;
+    *, html, body, [class*="css"] {
+        font-family: var(--font-stack) !important;
     }
     
-    html, body, [class*="css"] {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif !important;
-    }
-    
-    .stApp { background-color: #0a0a0a; color: #FFFFFF; }
+    .stApp { background-color: var(--bg-primary); color: #FFFFFF; }
 
     /* 侧边栏样式优化 */
     [data-testid="stSidebar"] {
-        background-color: #111111;
+        background-color: var(--bg-secondary);
         border-right: 1px solid #2a2a2a;
     }
     
@@ -60,10 +67,10 @@ st.markdown("""
     .hud-container {
         display: flex; 
         justify-content: space-between; 
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        background: linear-gradient(135deg, var(--bg-card) 0%, #16213e 100%);
         padding: 18px 24px; 
         border-radius: 16px; 
-        border: 1px solid #2a2a4a;
+        border: 1px solid var(--border-color);
         margin-bottom: 24px; 
         align-items: center;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -79,15 +86,15 @@ st.markdown("""
         color: #FFFFFF; 
         margin-left: 8px; 
     }
-    .hud-warn { color: #ff6b6b !important; } 
-    .hud-accent { color: #4ecdc4 !important; } 
+    .hud-warn { color: var(--error-color) !important; } 
+    .hud-accent { color: var(--accent-color) !important; } 
 
     /* 题目卡片样式优化 */
     .zen-card {
-        background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%);
+        background: linear-gradient(145deg, var(--bg-card) 0%, #0f0f1a 100%);
         padding: 30px; 
         border-radius: 20px;
-        border: 1px solid #2a2a4a; 
+        border: 1px solid var(--border-color); 
         margin-bottom: 24px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
@@ -127,7 +134,7 @@ st.markdown("""
     }
     .stRadio div[role='radiogroup'] > label:hover {
         background: linear-gradient(145deg, #252540 0%, #1a1a30 100%);
-        border-color: #4ecdc4; 
+        border-color: var(--accent-color); 
         color: #FFFFFF !important;
         transform: translateX(4px);
         box-shadow: 0 4px 15px rgba(78, 205, 196, 0.2);
@@ -191,9 +198,9 @@ st.markdown("""
     .completion-card {
         text-align: center;
         padding: 50px;
-        background: linear-gradient(145deg, #1a1a2e 0%, #0f0f1a 100%);
+        background: linear-gradient(145deg, var(--bg-card) 0%, #0f0f1a 100%);
         border-radius: 20px;
-        border: 1px solid #2a2a4a;
+        border: 1px solid var(--border-color);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
@@ -212,7 +219,7 @@ st.markdown("""
         margin-bottom: 40px;
     }
     .welcome-hint {
-        color: #4ecdc4;
+        color: var(--accent-color);
         font-size: 16px;
     }
 
@@ -224,7 +231,7 @@ st.markdown("""
     .arrow-hint { 
         animation: bounce 2s infinite; 
         font-size: 28px; 
-        color: #4ecdc4; 
+        color: var(--accent-color); 
         font-weight: bold; 
         display: inline-block; 
         margin-right: 12px; 
@@ -232,7 +239,7 @@ st.markdown("""
 
     /* 输入框样式 */
     .stTextInput input {
-        background-color: #1a1a2e !important;
+        background-color: var(--bg-card) !important;
         color: #FFFFFF !important;
         border: 1px solid #3a3a5a !important;
         border-radius: 10px !important;
@@ -240,7 +247,7 @@ st.markdown("""
     
     /* 选择框样式 */
     .stSelectbox > div > div {
-        background-color: #1a1a2e !important;
+        background-color: var(--bg-card) !important;
         color: #FFFFFF !important;
     }
 
@@ -562,8 +569,8 @@ else:
             st.markdown(
                 f"""<div class="completion-card">
                     <h2 style="font-size: 36px; margin-bottom: 20px;">🎉 恭喜完成!</h2>
-                    <p style="font-size: 18px; color: #a0a0b0;">本轮共 <span style="color: #4ecdc4; font-weight: bold;">{total_q}</span> 题</p>
-                    <p style="font-size: 18px; color: #a0a0b0;">错题 <span style="color: #ff6b6b; font-weight: bold;">{wrong_q}</span> 道</p>
+                    <p style="font-size: 18px; color: #a0a0b0;">本轮共 <span style="color: var(--accent-color); font-weight: bold;">{total_q}</span> 题</p>
+                    <p style="font-size: 18px; color: #a0a0b0;">错题 <span style="color: var(--error-color); font-weight: bold;">{wrong_q}</span> 道</p>
                 </div>""",
                 unsafe_allow_html=True)
             st.write("")
